@@ -1,0 +1,158 @@
+<div class="assignments">
+  <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
+  <div class="header">
+    <h1>Vehicle Assignment &amp; Trip Management</h1>
+    <button class="btn btn-primary" (click)="addNew()">New Trip Request</button>
+  </div>
+  <p class="page-subtitle">Request trips, assign vehicles and drivers, and manage approvals</p>
+
+  @if (showForm) {
+    <div class="modal-overlay">
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <h2>{{ editing.id ? 'Edit Assignment' : 'New Trip Request' }}</h2>
+          <button type="button" class="modal-close" (click)="cancel()" aria-label="Close">×</button>
+        </div>
+        <form class="assignment-form" (ngSubmit)="save()">
+          <h3 class="form-section-title">Assignment</h3>
+          <div class="form-grid-3">
+            <label>
+              Vehicle <span class="req">*</span>
+              <select [(ngModel)]="editing.vehicleId" name="vehicleId" required>
+                <option value="" disabled>Select vehicle</option>
+                @for (v of vehicles; track v.id) {
+                  <option [value]="v.id">{{ v.year }} {{ v.make }} {{ v.model }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Driver <span class="req">*</span>
+              <select [(ngModel)]="editing.driverId" name="driverId" required>
+                <option value="" disabled>Select driver</option>
+                @for (d of drivers; track d.id) {
+                  <option [value]="d.id">{{ d.name }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Department
+              <input type="text" [(ngModel)]="editing.department" name="department" required />
+            </label>
+          </div>
+
+          <h3 class="form-section-title">Trip Details</h3>
+          <div class="form-grid-3">
+            <label>
+              Purpose <span class="req">*</span>
+              <input type="text" [(ngModel)]="editing.purpose" name="purpose" required placeholder="e.g. Official field visit" />
+            </label>
+            <label>
+              Route <span class="req">*</span>
+              <input type="text" [(ngModel)]="editing.route" name="route" required placeholder="e.g. HQ → Dodoma" />
+            </label>
+            <label>
+              Status
+              <select [(ngModel)]="editing.status" name="status">
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </label>
+            <label>
+              Departure Time
+              <input type="datetime-local" [(ngModel)]="editing.departureTime" name="departureTime" />
+            </label>
+            <label>
+              Expected Return
+              <input type="datetime-local" [(ngModel)]="editing.returnTime" name="returnTime" />
+            </label>
+            <label>
+              Start Date <span class="req">*</span>
+              <input type="date" [(ngModel)]="editing.startDate" name="startDate" required />
+            </label>
+            <label>
+              End Date
+              <input type="date" [(ngModel)]="editing.endDate" name="endDate" />
+            </label>
+            <label>
+              Start Odometer (km)
+              <input type="number" [(ngModel)]="editing.startOdometer" name="startOdometer" min="0" />
+            </label>
+            <label>
+              End Odometer (km)
+              <input type="number" [(ngModel)]="editing.endOdometer" name="endOdometer" min="0" />
+            </label>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Vehicle</th>
+          <th>Driver</th>
+          <th>Purpose / Route</th>
+          <th>Departure</th>
+          <th>Return</th>
+          <th>Odometer</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (a of assignments; track a.id) {
+          <tr>
+            <td>{{ a.vehicleName }}</td>
+            <td>{{ a.driverName }}</td>
+            <td>
+              <div class="trip-purpose">{{ a.purpose || '-' }}</div>
+              <div class="trip-route">{{ a.route || a.department }}</div>
+            </td>
+            <td>{{ a.departureTime || a.startDate }}</td>
+            <td>{{ a.returnTime || a.endDate || '-' }}</td>
+            <td>
+              @if (a.startOdometer) {
+                <span>{{ a.startOdometer }} → {{ a.endOdometer || '—' }}</span>
+              } @else {
+                -
+              }
+            </td>
+            <td>
+              <span class="badge"
+                [class.badge-warning]="a.status === 'pending'"
+                [class.badge-info]="a.status === 'approved'"
+                [class.badge-danger]="a.status === 'rejected'"
+                [class.badge-active]="a.status === 'active'"
+                [class.badge-inactive]="a.status === 'cancelled'"
+                [class.badge-success]="a.status === 'completed'">
+                {{ a.status }}
+              </span>
+            </td>
+            <td>
+              @if (a.status === 'pending') {
+                <button class="btn btn-primary btn-sm" (click)="updateStatus(a, 'approved')">Approve</button>
+                <button class="btn btn-danger btn-sm" (click)="updateStatus(a, 'rejected')">Reject</button>
+              } @else {
+                @if (a.status === 'approved' || a.status === 'active') {
+                  <button class="btn btn-primary btn-sm" (click)="updateStatus(a, 'completed')">Complete</button>
+                }
+                <button class="btn btn-primary btn-sm" (click)="edit(a)">Edit</button>
+                <button class="btn btn-danger btn-sm" (click)="delete(a.id)">Delete</button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

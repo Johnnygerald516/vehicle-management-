@@ -1,0 +1,192 @@
+<div class="tracking">
+  <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
+  <h1>Tracking</h1>
+  <p class="page-subtitle">Monitor live vehicle locations and review trip history</p>
+
+  <div class="tracking-layout">
+    <div class="vehicle-list">
+      <h2>Vehicles</h2>
+      @if (vehicles().length === 0) {
+        <p class="empty">No vehicles found.</p>
+      } @else {
+        <ul>
+          @for (v of vehicles(); track v.vehicleId) {
+            <li
+              [class.selected]="selectedVehicleId() === v.vehicleId"
+              (click)="selectVehicle(v.vehicleId)">
+              <div class="vehicle-row">
+                <span
+                  class="status-dot"
+                  [class.status-active]="v.status === 'active'"
+                  [class.status-delayed]="v.status === 'delayed'"
+                  [class.status-offline]="v.status === 'offline'"
+                  [attr.aria-label]="v.status + ' status'">
+                </span>
+                <div class="vehicle-info">
+                  <span class="vehicle-name">{{ v.vehicleName }}</span>
+                  <span class="vehicle-plate">{{ v.licensePlate }}</span>
+                </div>
+              </div>
+              <span class="vehicle-driver">{{ v.driverName }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <div class="detail-panel">
+      @if (selectedVehicle(); as v) {
+        <div class="detail-header">
+          <div>
+            <h2>{{ v.vehicleName }}</h2>
+            <p class="detail-subtitle">{{ v.licensePlate }} · Driver: {{ v.driverName }}</p>
+          </div>
+          <button
+            class="btn"
+            [class.btn-primary]="!isTracking(v.vehicleId)"
+            [class.btn-secondary]="isTracking(v.vehicleId)"
+            (click)="toggleTracking(v.vehicleId)">
+            {{ isTracking(v.vehicleId) ? 'Stop Tracking' : 'Start Tracking' }}
+          </button>
+        </div>
+
+        <div class="status-banner"
+          [class.status-banner-active]="v.status === 'active'"
+          [class.status-banner-delayed]="v.status === 'delayed'"
+          [class.status-banner-offline]="v.status === 'offline'">
+          <span
+            class="status-dot"
+            [class.status-active]="v.status === 'active'"
+            [class.status-delayed]="v.status === 'delayed'"
+            [class.status-offline]="v.status === 'offline'">
+          </span>
+          @switch (v.status) {
+            @case ('active') { GPS connection active }
+            @case ('delayed') { GPS connection delayed }
+            @case ('offline') { Vehicle offline }
+          }
+        </div>
+
+        <div class="gps-grid">
+          <div class="gps-card">
+            <span class="gps-label">Latitude</span>
+            <span class="gps-value">{{ v.latitude !== null ? v.latitude.toFixed(4) : '-' }}</span>
+          </div>
+          <div class="gps-card">
+            <span class="gps-label">Longitude</span>
+            <span class="gps-value">{{ v.longitude !== null ? v.longitude.toFixed(4) : '-' }}</span>
+          </div>
+          <div class="gps-card">
+            <span class="gps-label">Speed</span>
+            <span class="gps-value">{{ v.speed !== null ? v.speed + ' km/h' : '-' }}</span>
+          </div>
+          <div class="gps-card">
+            <span class="gps-label">Last Update</span>
+            <span class="gps-value">{{ formatTime(v.lastUpdate) }}</span>
+          </div>
+        </div>
+
+        @if (activeTrip(); as trip) {
+          @if (trip.vehicleId === v.vehicleId) {
+            <div class="active-trip">
+              <h3>Active Trip</h3>
+              <p><strong>Started:</strong> {{ trip.startTime }}</p>
+              <p><strong>From:</strong> {{ trip.startLocation }}</p>
+              <div class="actions">
+                <button class="btn btn-success" (click)="endTrip(trip)">End Trip</button>
+                <button class="btn btn-secondary" (click)="cancelTrip(trip)">Cancel Trip</button>
+              </div>
+            </div>
+          } @else {
+            <form class="trip-form" (ngSubmit)="startTrip()">
+              <h3>Start New Trip</h3>
+              <div class="form-row">
+                <label>
+                  Driver Name
+                  <input type="text" [(ngModel)]="newTrip.driverName" name="driverName" required />
+                </label>
+                <label>
+                  Start Location
+                  <input type="text" [(ngModel)]="newTrip.startLocation" name="startLocation" required />
+                </label>
+              </div>
+              <div class="actions">
+                <button type="submit" class="btn btn-primary">Start Trip</button>
+              </div>
+            </form>
+          }
+        } @else {
+          <form class="trip-form" (ngSubmit)="startTrip()">
+            <h3>Start New Trip</h3>
+            <div class="form-row">
+              <label>
+                Driver Name
+                <input type="text" [(ngModel)]="newTrip.driverName" name="driverName" required />
+              </label>
+              <label>
+                Start Location
+                <input type="text" [(ngModel)]="newTrip.startLocation" name="startLocation" required />
+              </label>
+            </div>
+            <div class="actions">
+              <button type="submit" class="btn btn-primary">Start Trip</button>
+            </div>
+          </form>
+        }
+      } @else {
+        <div class="select-prompt">
+          <p>Select a vehicle from the list to view its live tracking details.</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="history-section">
+    <h2>Trip History</h2>
+    @if (trips().length === 0) {
+      <p class="empty">No trip records yet.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Vehicle</th>
+              <th>Driver</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Distance</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (t of trips(); track t.id) {
+              <tr>
+                <td>{{ vehicleName(t.vehicleId) }}</td>
+                <td>{{ t.driverName || '-' }}</td>
+                <td>{{ t.startTime }}</td>
+                <td>{{ t.endTime || '-' }}</td>
+                <td>{{ t.startLocation }}</td>
+                <td>{{ t.endLocation || '-' }}</td>
+                <td>{{ t.distance || '-' }}</td>
+                <td>
+                  <span class="badge"
+                    [class.badge-primary]="t.status === 'in_progress'"
+                    [class.badge-success]="t.status === 'completed'"
+                    [class.badge-inactive]="t.status === 'cancelled'">
+                    {{ t.status }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-danger btn-sm" (click)="deleteTrip(t.id)">Delete</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

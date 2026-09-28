@@ -1,0 +1,62 @@
+<div class="login-page">
+  <header class="login-topbar">
+    <div class="topbar-inner">
+      <img
+        class="topbar-logo"
+        src="coat-of-arms-of-tanzania.png"
+        alt="Tanzania coat of arms"
+        width="500"
+        height="500"
+      />
+      <div class="topbar-titles">
+        <span class="topbar-line">The United Republic of Tanzania</span>
+        <span class="topbar-line topbar-line--strong">Ministry of Home Affairs</span>
+        <span class="topbar-line topbar-line--small">Immigration Services Department</span>
+      </div>
+      <img
+        class="topbar-logo"
+        src="immigration.png"
+        alt="Immigration logo"
+        width="316"
+        height="296"
+      />
+    </div>
+  </header>
+
+  <main class="login-hero">
+    <div class="login-card">
+      <div class="portal-card info-card">
+        <h1>
+          Immigration Service
+          <span class="text-primary">Vehicle Management System (VMS)</span>
+        </h1>
+        <p class="hero-description">
+          The official portal for managing vehicle fleets, drivers, assignments, and maintenance services in one place.
+        </p>
+      </div>
+
+      <div class="portal-card">
+        <h2>Login to your Account</h2>
+        <form (ngSubmit)="signIn()">
+          <label>
+            Email or Phone
+            <input type="text" [(ngModel)]="email" name="email" placeholder="Enter email address or phone" required />
+          </label>
+          <label>
+            Password
+            <div class="password-wrap">
+              <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" placeholder="Enter your password" required />
+              <button type="button" class="toggle-password" (click)="showPassword = !showPassword">
+                {{ showPassword ? 'Hide' : 'Show' }}
+              </button>
+            </div>
+          </label>
+          <div class="options">
+            <a href="#" class="forgot">Forget Password?</a>
+          </div>
+          <button type="submit" class="btn btn-primary btn-pill sign-in">Login →</button>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>

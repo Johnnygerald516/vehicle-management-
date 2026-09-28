@@ -1,0 +1,88 @@
+<div class="reports">
+  <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
+  <h1>Reports</h1>
+
+  <div class="filter-card">
+    <h2 class="filter-title">Search by Vehicle Criteria</h2>
+    <div class="filters">
+      <label>
+        Search
+        <input type="text" [(ngModel)]="keyword" name="keyword" placeholder="Plate, make, model, VIN, department..." />
+      </label>
+      <label>
+        Status
+        <select [(ngModel)]="status" name="status">
+          <option value="">All</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </label>
+      <label>
+        Department
+        <select [(ngModel)]="department" name="department">
+          <option value="">All</option>
+          @for (d of uniqueDepartments(); track d) {
+            <option [value]="d">{{ d }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Ownership
+        <select [(ngModel)]="ownership" name="ownership">
+          <option value="">All</option>
+          @for (o of uniqueOwnerships(); track o) {
+            <option [value]="o">{{ o }}</option>
+          }
+        </select>
+      </label>
+      <div class="filter-actions">
+        <button class="btn btn-primary" (click)="applyFilters()">Search</button>
+        <button class="btn btn-secondary" (click)="reset()">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Vehicle</th>
+          <th>Plate</th>
+          <th>Department</th>
+          <th>Ownership</th>
+          <th>Year</th>
+          <th>Status</th>
+          <th>Fuel</th>
+          <th>Service</th>
+          <th>Incidents</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (v of filtered(); track v.id) {
+          <tr>
+            <td><a [routerLink]="['/vehicles', v.id]">{{ v.year }} {{ v.make }} {{ v.model }}</a></td>
+            <td>{{ v.licensePlate }}</td>
+            <td>{{ v.department || '-' }}</td>
+            <td>{{ v.ownership || '-' }}</td>
+            <td>{{ v.year }}</td>
+            <td>
+              <span class="badge"
+                [class.badge-active]="v.status === 'active'"
+                [class.badge-inactive]="v.status === 'inactive'">
+                {{ v.status }}
+              </span>
+            </td>
+            <td>{{ fuelCost(v) | currency }}</td>
+            <td>{{ serviceCost(v) | currency }}</td>
+            <td>{{ incidentCost(v) | currency }}</td>
+            <td class="total-cell">{{ totalCost(v) | currency }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (filtered().length === 0) {
+      <p class="empty">No vehicles match the selected criteria. Press Search to refresh.</p>
+    }
+  </div>
+</div>

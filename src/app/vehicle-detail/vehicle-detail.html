@@ -1,0 +1,148 @@
+<div class="vehicle-detail">
+  @if (vehicle) {
+    <a routerLink="/vehicles">&larr; Back to Vehicles</a>
+    <h1>{{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}</h1>
+    <div class="details">
+      <p><strong>Vehicle ID</strong> {{ vehicle.vehicleId || '-' }}</p>
+      <p><strong>License Plate</strong> {{ vehicle.licensePlate }}</p>
+      <p><strong>VIN / Chassis</strong> {{ vehicle.vin || '-' }}</p>
+      <p><strong>Fuel Type</strong> {{ vehicle.fuelType || '-' }}</p>
+      <p><strong>Fuel Tank Capacity</strong> {{ vehicle.fuelTankCapacity ? vehicle.fuelTankCapacity + ' L' : '-' }}</p>
+      <p><strong>Current Mileage</strong> {{ vehicle.mileage }}</p>
+      <p><strong>Next Service Mileage</strong> {{ vehicle.nextServiceMileage || '-' }}</p>
+      <p><strong>Last Service</strong> {{ vehicle.lastServiceDate || '-' }}</p>
+      <p><strong>Next Service Due</strong>
+        <span class="badge"
+          [class.badge-overdue]="vehicle.nextServiceDue < today"
+          [class.badge-due-soon]="vehicle.nextServiceDue >= today && vehicle.nextServiceDue <= soonDate()">
+          {{ vehicle.nextServiceDue }}
+        </span>
+      </p>
+      <p><strong>Status</strong>
+        <span class="badge"
+          [class.badge-active]="vehicle.status === 'active'"
+          [class.badge-inactive]="vehicle.status === 'inactive'">
+          {{ vehicle.status }}
+        </span>
+      </p>
+    </div>
+
+    <h2>Service History</h2>
+    <form class="record-form" (ngSubmit)="addRecord()">
+      <div class="form-row">
+        <label>
+          Service Date
+          <input type="date" [(ngModel)]="newRecord.serviceDate" name="serviceDate" required />
+        </label>
+        <label>
+          Mileage
+          <input type="number" [(ngModel)]="newRecord.mileage" name="mileage" required />
+        </label>
+        <label>
+          Service Type
+          <input type="text" [(ngModel)]="newRecord.serviceType" name="serviceType" placeholder="e.g. Oil Change" required />
+        </label>
+      </div>
+      <div class="form-row">
+        <label>
+          Technician
+          <input type="text" [(ngModel)]="newRecord.technician" name="technician" />
+        </label>
+        <label>
+          Cost
+          <input type="number" [(ngModel)]="newRecord.cost" name="cost" step="0.01" />
+        </label>
+        <label>
+          Next Service Mileage
+          <input type="number" [(ngModel)]="newRecord.nextServiceMileage" name="nextServiceMileage" />
+        </label>
+      </div>
+      <label>
+        Description
+        <textarea [(ngModel)]="newRecord.description" name="description" rows="3"></textarea>
+      </label>
+      <button type="submit" class="btn btn-primary">Add Service Record</button>
+    </form>
+
+    @if (records.length === 0) {
+      <p class="empty">No service records yet.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Mileage</th>
+              <th>Service</th>
+              <th>Cost</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of records; track r.id) {
+              <tr>
+                <td>{{ r.serviceDate }}</td>
+                <td>{{ r.mileage }}</td>
+                <td>{{ r.serviceType }}</td>
+                <td>{{ r.cost ? (r.cost | currency) : '-' }}</td>
+                <td>
+                  <span class="badge badge-success">{{ r.status }}</span>
+                </td>
+                <td>
+                  <button class="btn btn-link" (click)="viewRecord(r)">View</button>
+                  <button class="btn btn-danger" (click)="deleteRecord(r.id)">Delete</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (selectedRecord) {
+      <div class="record-detail">
+        <div class="detail-header">
+          <h3>Service Details</h3>
+          <button class="btn btn-secondary" (click)="closeDetail()">Close</button>
+        </div>
+        <div class="detail-grid">
+          <p><strong>Service No</strong> {{ selectedRecord.serviceNumber || '-' }}</p>
+          <p><strong>Work Order</strong> {{ selectedRecord.workOrderId ? 'WO-' + selectedRecord.workOrderId.slice(-6).toUpperCase() : '-' }}</p>
+          <p><strong>Service Date</strong> {{ selectedRecord.serviceDate }}</p>
+          <p><strong>Mileage</strong> {{ selectedRecord.mileage }}</p>
+          <p><strong>Service Type</strong> {{ selectedRecord.serviceType }}</p>
+          <p><strong>Technician</strong> {{ selectedRecord.technician || '-' }}</p>
+        </div>
+        <div class="detail-section">
+          <h4>Work Performed</h4>
+          <p>{{ selectedRecord.description || '-' }}</p>
+        </div>
+        <div class="detail-section">
+          <h4>Parts Used</h4>
+          <p>{{ selectedRecord.parts || '-' }}</p>
+        </div>
+        <div class="detail-section">
+          <h4>Costs</h4>
+          <div class="cost-row"><span>Labour</span><span>{{ selectedRecord.labourCost | currency }}</span></div>
+          <div class="cost-row"><span>Other</span><span>{{ selectedRecord.otherCost | currency }}</span></div>
+          <div class="cost-row total"><span>Total</span><span>{{ selectedRecord.cost | currency }}</span></div>
+        </div>
+        @if (selectedRecord.nextServiceMileage || selectedRecord.nextServiceDate) {
+          <div class="detail-section">
+            <h4>Next Service</h4>
+            @if (selectedRecord.nextServiceMileage) {
+              <p>Mileage: {{ selectedRecord.nextServiceMileage }}</p>
+            }
+            @if (selectedRecord.nextServiceDate) {
+              <p>Date: {{ selectedRecord.nextServiceDate }}</p>
+            }
+          </div>
+        }
+      </div>
+    }
+  } @else {
+    <p>Vehicle not found.</p>
+    <a routerLink="/vehicles">Back to Vehicles</a>
+  }
+</div>

@@ -1,0 +1,199 @@
+<div class="vehicles">
+  <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
+  <div class="header">
+    <h1>Vehicle Registry</h1>
+    <button class="btn btn-primary" (click)="addNew()">Add Vehicle</button>
+  </div>
+  <p class="page-subtitle">Register and manage vehicles, ownership and supporting documents</p>
+
+  @if (showForm) {
+    <div class="modal-overlay">
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <h2>{{ editingVehicle.id ? 'Edit Vehicle' : 'Add Vehicle' }}</h2>
+          <button type="button" class="modal-close" (click)="cancel()" aria-label="Close">×</button>
+        </div>
+        <form class="vehicle-form" (ngSubmit)="save()">
+          <div class="form-panels">
+            <div class="form-panel">
+              <h3 class="form-section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M6 13 L8 8 H16 L18 13" />
+                  <path d="M4 13 H20 V17 H18.5 L18 15 H6 L5.5 17 H4 V13" />
+                  <circle cx="8" cy="16.5" r="1.5" />
+                  <circle cx="16" cy="16.5" r="1.5" />
+                </svg>
+                Vehicle Identification
+              </h3>
+              <div class="form-grid-3">
+                <label>
+                  Vehicle ID <span class="req">*</span>
+                  <input type="text" [(ngModel)]="editingVehicle.vehicleId" name="vehicleId" required placeholder="VH-001" />
+                </label>
+                <label>
+                  Make <span class="req">*</span>
+                  <input type="text" [(ngModel)]="editingVehicle.make" name="make" required placeholder="Toyota" />
+                </label>
+                <label>
+                  Model <span class="req">*</span>
+                  <input type="text" [(ngModel)]="editingVehicle.model" name="model" required placeholder="Camry" />
+                </label>
+                <label>
+                  Year <span class="req">*</span>
+                  <input type="number" [(ngModel)]="editingVehicle.year" name="year" required />
+                </label>
+                <label>
+                  License Plate <span class="req">*</span>
+                  <input type="text" [(ngModel)]="editingVehicle.licensePlate" name="licensePlate" required placeholder="T 123 ABC" />
+                </label>
+                <label>
+                  VIN / Chassis <span class="req">*</span>
+                  <input type="text" [(ngModel)]="editingVehicle.vin" name="vin" required placeholder="JT2BF22K1W0123456" />
+                </label>
+                <label>
+                  Engine Number
+                  <input type="text" [(ngModel)]="editingVehicle.engineNumber" name="engineNumber" placeholder="2GR-FE-8841" />
+                </label>
+                <label>
+                  Fuel Type
+                  <select [(ngModel)]="editingVehicle.fuelType" name="fuelType">
+                    <option value="">Select fuel type</option>
+                    <option value="Petrol">Petrol</option>
+                    <option value="Diesel">Diesel</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="Electric">Electric</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-panel">
+              <h3 class="form-section-title">Ownership & Department</h3>
+              <div class="form-grid-3">
+                <label>
+                  Ownership
+                  <select [(ngModel)]="editingVehicle.ownership" name="ownership">
+                    <option value="">Select ownership</option>
+                    <option value="Government">Government</option>
+                    <option value="Leased">Leased</option>
+                    <option value="Contracted">Contracted</option>
+                  </select>
+                </label>
+                <label>
+                  Department
+                  <input type="text" [(ngModel)]="editingVehicle.department" name="department" placeholder="e.g. Immigration Services Department" />
+                </label>
+                <label>
+                  Current Mileage (km)
+                  <input type="number" [(ngModel)]="editingVehicle.mileage" name="mileage" min="0" />
+                </label>
+                <label>
+                  Status
+                  <select [(ngModel)]="editingVehicle.status" name="status">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-panel">
+              <h3 class="form-section-title">Documents & Expiry Dates</h3>
+              <div class="form-grid-3">
+                <label>
+                  Insurance Expiry
+                  <input type="date" [(ngModel)]="editingVehicle.insuranceExpiry" name="insuranceExpiry" />
+                </label>
+                <label>
+                  Road Licence Expiry
+                  <input type="date" [(ngModel)]="editingVehicle.roadLicenseExpiry" name="roadLicenseExpiry" />
+                </label>
+                <label>
+                  Inspection Expiry
+                  <input type="date" [(ngModel)]="editingVehicle.inspectionExpiry" name="inspectionExpiry" />
+                </label>
+                <label>
+                  Next Service Due
+                  <input type="date" [(ngModel)]="editingVehicle.nextServiceDue" name="nextServiceDue" />
+                </label>
+                <div class="upload-column">
+                  <label class="upload-btn">
+                    <input type="file" multiple (change)="onDocumentSelect($event)" />
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M21 15 V19 A2 2 0 0 1 19 21 H5 A2 2 0 0 1 3 19 V15" />
+                      <path d="M17 8 L12 3 L7 8" />
+                      <path d="M12 3 V15" />
+                    </svg>
+                    Attach Documents
+                  </label>
+                  @if (editingVehicle.documents && editingVehicle.documents!.length > 0) {
+                    <ul class="doc-list">
+                      @for (doc of editingVehicle.documents; track $index) {
+                        <li>
+                          <span>{{ doc }}</span>
+                          <button type="button" class="doc-remove" (click)="removeDocument($index)" aria-label="Remove document">×</button>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Vehicle ID</th>
+          <th>Vehicle</th>
+          <th>Plate</th>
+          <th>Department</th>
+          <th>Fuel</th>
+          <th>Mileage</th>
+          <th>Next Service</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (v of vehicles; track v.id) {
+          <tr>
+            <td>{{ v.vehicleId || '-' }}</td>
+            <td><a [routerLink]="['/vehicles', v.id]">{{ v.year }} {{ v.make }} {{ v.model }}</a></td>
+            <td>{{ v.licensePlate }}</td>
+            <td>{{ v.department || '-' }}</td>
+            <td>{{ v.fuelType || '-' }}</td>
+            <td>{{ v.mileage }}</td>
+            <td>
+              <span class="badge"
+                [class.badge-overdue]="v.nextServiceDue < today"
+                [class.badge-due-soon]="v.nextServiceDue >= today && v.nextServiceDue <= soonDate()">
+                {{ v.nextServiceDue }}
+              </span>
+            </td>
+            <td>
+              <span class="badge"
+                [class.badge-active]="v.status === 'active'"
+                [class.badge-inactive]="v.status === 'inactive'">
+                {{ v.status }}
+              </span>
+            </td>
+            <td>
+              <button class="btn btn-primary btn-sm" (click)="edit(v)">Edit</button>
+              <button class="btn btn-danger btn-sm" (click)="delete(v.id)">Delete</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

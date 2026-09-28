@@ -1,0 +1,58 @@
+<div class="dashboard">
+  <h1>Vehicle Management System</h1>
+  <p class="page-subtitle">Overview of your fleet, drivers, and assignments</p>
+
+  <div class="cards">
+    <a routerLink="/vehicles" class="card">
+      <div class="stat-icon icon-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 13 L8 8 H16 L18 13" />
+          <path d="M4 13 H20 V17 H18.5 L18 15 H6 L5.5 17 H4 V13" />
+          <circle cx="8" cy="16.5" r="1.5" />
+          <circle cx="16" cy="16.5" r="1.5" />
+        </svg>
+      </div>
+      <div class="card-body">
+        <span class="number">{{ totalVehicles() }}</span>
+        <span class="label">Total Vehicles</span>
+      </div>
+    </a>
+    <a routerLink="/tracking" class="card">
+      <div class="stat-icon icon-info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6 L12 12 L16 14" />
+        </svg>
+      </div>
+      <div class="card-body">
+        <span class="number">{{ onTripVehicles() }}</span>
+        <span class="label">On Trip</span>
+      </div>
+    </a>
+    <a routerLink="/maintenance" class="card">
+      <div class="stat-icon icon-warning">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10.29 3.86 L1.82 18 A2 2 0 0 0 3.54 21 H20.46 A2 2 0 0 0 22.18 18 L13.71 3.86 A2 2 0 0 0 10.29 3.86 Z" />
+          <path d="M12 9 V13" />
+          <path d="M12 17 H12.01" />
+        </svg>
+      </div>
+      <div class="card-body">
+        <span class="number">{{ maintenanceVehicles() }}</span>
+        <span class="label">Maintenance</span>
+      </div>
+    </a>
+    <a routerLink="/drivers" class="card">
+      <div class="stat-icon icon-purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M5 20a7 7 0 0 1 14 0" />
+        </svg>
+      </div>
+      <div class="card-body">
+        <span class="number">{{ totalDrivers() }}</span>
+        <span class="label">Total Drivers</span>
+      </div>
+    </a>
+  </div>
+</div>

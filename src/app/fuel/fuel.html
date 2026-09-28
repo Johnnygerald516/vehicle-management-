@@ -1,0 +1,139 @@
+<div class="fuel">
+  <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
+  <h1>Fuel Management</h1>
+  <p class="page-subtitle">Record, review, and analyse fuel usage</p>
+
+  <div class="tabs">
+    <button class="tab" [class.active]="activeTab() === 'entry'" (click)="setTab('entry')">Fuel Entry</button>
+    <button class="tab" [class.active]="activeTab() === 'history'" (click)="setTab('history')">Fuel History</button>
+  </div>
+
+  @if (activeTab() === 'entry') {
+    <div class="section-header">
+      <h2>Fuel Entry</h2>
+      <button class="btn btn-primary" (click)="addNew()">Add Fuel Entry</button>
+    </div>
+    @if (entries().length === 0) {
+      <p class="empty">No fuel entries recorded yet. Click "Add Fuel Entry" to get started.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Vehicle</th>
+              <th>Date</th>
+              <th>Fuel Type</th>
+              <th>Litres</th>
+              <th>Mileage</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of entries(); track e.id) {
+              <tr>
+                <td>{{ vehicleName(e.vehicleId) }}</td>
+                <td>{{ e.date }}</td>
+                <td>{{ e.fuelType || '-' }}</td>
+                <td>{{ e.litres }}</td>
+                <td>{{ e.mileage }}</td>
+                <td>
+                  <button class="btn btn-primary btn-sm" (click)="edit(e)">Edit</button>
+                  <button class="btn btn-danger btn-sm" (click)="delete(e.id)">Delete</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+  @if (showForm()) {
+    <div class="modal-overlay" (click)="cancel()">
+      <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <h2>{{ editing.id ? 'Edit Fuel Entry' : 'Add Fuel Entry' }}</h2>
+          <button type="button" class="modal-close" (click)="cancel()" aria-label="Close">×</button>
+        </div>
+        <form class="fuel-form" (ngSubmit)="save()">
+          <div class="form-grid">
+            <label>
+              Vehicle <span class="req">*</span>
+              <select [(ngModel)]="editing.vehicleId" name="vehicleId" required>
+                <option value="" disabled>Select vehicle</option>
+                @for (v of vehicles(); track v.id) {
+                  <option [value]="v.id">{{ v.year }} {{ v.make }} {{ v.model }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Date <span class="req">*</span>
+              <input type="date" [(ngModel)]="editing.date" name="date" required />
+            </label>
+            <label>
+              Fuel Type <span class="req">*</span>
+              <select [(ngModel)]="editing.fuelType" name="fuelType" required>
+                <option value="" disabled>Select fuel type</option>
+                <option value="Petrol">Petrol</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="Electric">Electric</option>
+              </select>
+            </label>
+            <label>
+              Litres <span class="req">*</span>
+              <input type="number" [(ngModel)]="editing.litres" name="litres" min="0" step="0.1" required placeholder="0.0" />
+            </label>
+            <label>
+              Mileage <span class="req">*</span>
+              <input type="number" [(ngModel)]="editing.mileage" name="mileage" min="0" step="1" required placeholder="0" />
+            </label>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (activeTab() === 'history') {
+    <div class="section">
+      <h2>Fuel History</h2>
+      @if (entries().length === 0) {
+        <p class="empty">No fuel entries recorded yet.</p>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Vehicle</th>
+                <th>Date</th>
+                <th>Litres</th>
+                <th>Cost</th>
+                <th>Mileage</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (e of entries(); track e.id) {
+                <tr>
+                  <td>{{ vehicleName(e.vehicleId) }}</td>
+                  <td>{{ e.date }}</td>
+                  <td>{{ e.litres }}</td>
+                  <td>{{ e.cost | currency }}</td>
+                  <td>{{ e.mileage }}</td>
+                  <td>
+                    <button class="btn btn-primary btn-sm" (click)="edit(e)">Edit</button>
+                    <button class="btn btn-danger btn-sm" (click)="delete(e.id)">Delete</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>

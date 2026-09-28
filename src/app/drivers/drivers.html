@@ -1,0 +1,203 @@
+<div class="drivers">
+  <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
+  <div class="header">
+    <h1>Driver Management</h1>
+    <button class="btn btn-primary" (click)="addNew()">Add Driver</button>
+  </div>
+  <p class="page-subtitle">Driver profiles, licences, assignments and performance records</p>
+
+  @if (showForm) {
+    <div class="modal-overlay">
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <h2>{{ editing.id ? 'Edit Driver' : 'Add Driver' }}</h2>
+          <button type="button" class="modal-close" (click)="cancel()" aria-label="Close">×</button>
+        </div>
+        <form class="driver-form" (ngSubmit)="save()">
+          <h3 class="form-section-title">Personal Information</h3>
+          <div class="form-row form-row-3">
+            <label>
+              Full Name <span class="req">*</span>
+              <input type="text" [(ngModel)]="editing.name" name="name" required />
+            </label>
+            <label>
+              Employee / Driver ID <span class="req">*</span>
+              <input type="text" [(ngModel)]="editing.employeeId" name="employeeId" required />
+            </label>
+            <label>
+              Phone Number <span class="req">*</span>
+              <input type="tel" [(ngModel)]="editing.phone" name="phone" required />
+            </label>
+          </div>
+          <div class="form-row form-row-3">
+            <label>
+              Email <span class="opt">(optional)</span>
+              <input type="email" [(ngModel)]="editing.email" name="email" />
+            </label>
+            <label>
+              Address <span class="opt">(optional)</span>
+              <input type="text" [(ngModel)]="editing.address" name="address" />
+            </label>
+            <label>
+              Emergency Contact <span class="opt">(optional)</span>
+              <input type="tel" [(ngModel)]="editing.emergencyContact" name="emergencyContact" />
+            </label>
+          </div>
+
+          <h3 class="form-section-title">License Information</h3>
+          <div class="form-row form-row-3">
+            <label>
+              License Number <span class="req">*</span>
+              <input type="text" [(ngModel)]="editing.licenseNumber" name="licenseNumber" required />
+            </label>
+            <label>
+              License Category <span class="req">*</span>
+              <select [(ngModel)]="editing.licenseCategory" name="licenseCategory" required>
+                <option value="" disabled>Select category</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+                <option value="E">E</option>
+              </select>
+            </label>
+            <label>
+              Status <span class="req">*</span>
+              <select [(ngModel)]="editing.status" name="status">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </label>
+          </div>
+          <div class="form-row form-row-3">
+            <label>
+              License Issue Date <span class="req">*</span>
+              <input type="date" [(ngModel)]="editing.licenseIssueDate" name="licenseIssueDate" required />
+            </label>
+            <label>
+              License Expiry Date <span class="req">*</span>
+              <input type="date" [(ngModel)]="editing.licenseExpiryDate" name="licenseExpiryDate" required />
+            </label>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (profile) {
+    <div class="modal-overlay">
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <h2>Driver Profile — {{ profile.driver.name }}</h2>
+          <button type="button" class="modal-close" (click)="closeProfile()" aria-label="Close">×</button>
+        </div>
+        <div class="profile-body">
+          <div class="profile-grid">
+            <div class="profile-item"><span class="label">Employee ID</span><span>{{ profile.driver.employeeId || '-' }}</span></div>
+            <div class="profile-item"><span class="label">Phone</span><span>{{ profile.driver.phone || '-' }}</span></div>
+            <div class="profile-item"><span class="label">Licence No.</span><span>{{ profile.driver.licenseNumber }}</span></div>
+            <div class="profile-item">
+              <span class="label">Licence Expiry</span>
+              <span class="badge"
+                [class.badge-danger]="licenceStatus(profile.driver) === 'expired'"
+                [class.badge-warning]="licenceStatus(profile.driver) === 'expiring'"
+                [class.badge-success]="licenceStatus(profile.driver) === 'valid'">
+                {{ profile.driver.licenseExpiryDate }}
+              </span>
+            </div>
+            <div class="profile-item"><span class="label">Assigned Vehicle</span><span>{{ profile.vehicleName }}</span></div>
+            <div class="profile-item"><span class="label">Department</span><span>{{ profile.assignment?.department || '-' }}</span></div>
+          </div>
+
+          <h3 class="form-section-title">Performance</h3>
+          <div class="cards profile-cards">
+            <div class="card"><span class="number">{{ profile.trips.length }}</span><span class="label">Total Trips</span></div>
+            <div class="card"><span class="number">{{ completedTrips() }}</span><span class="label">Completed Trips</span></div>
+            <div class="card"><span class="number">{{ profile.incidents.length }}</span><span class="label">Incidents</span></div>
+          </div>
+
+          <h3 class="form-section-title">Trip History</h3>
+          @if (profile.trips.length === 0) {
+            <p class="empty">No trips recorded.</p>
+          } @else {
+            <ul class="record-list">
+              @for (t of profile.trips; track t.id) {
+                <li>{{ t.startTime }} — {{ t.startLocation }} → {{ t.endLocation || '—' }} ({{ t.status }})</li>
+              }
+            </ul>
+          }
+
+          <h3 class="form-section-title">Incidents</h3>
+          @if (profile.incidents.length === 0) {
+            <p class="empty">No incidents recorded.</p>
+          } @else {
+            <ul class="record-list">
+              @for (i of profile.incidents; track i.id) {
+                <li>{{ i.date }} — {{ i.location }} ({{ i.status }}){{ i.repairCost ? ' — ' + (i.repairCost | currency) : '' }}</li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Employee ID</th>
+          <th>Name</th>
+          <th>License No.</th>
+          <th>Category</th>
+          <th>Licence Expiry</th>
+          <th>Phone</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of drivers; track d.id) {
+          <tr>
+            <td>{{ d.employeeId || '-' }}</td>
+            <td>{{ d.name }}</td>
+            <td>{{ d.licenseNumber }}</td>
+            <td>
+              @if (d.licenseCategory) {
+                <span class="badge badge-primary">{{ d.licenseCategory }}</span>
+              } @else {
+                -
+              }
+            </td>
+            <td>
+              <span class="badge"
+                [class.badge-danger]="licenceStatus(d) === 'expired'"
+                [class.badge-warning]="licenceStatus(d) === 'expiring'"
+                [class.badge-success]="licenceStatus(d) === 'valid'">
+                {{ d.licenseExpiryDate || '-' }}
+              </span>
+            </td>
+            <td>{{ d.phone || '-' }}</td>
+            <td>
+              <span class="badge"
+                [class.badge-active]="d.status === 'active'"
+                [class.badge-inactive]="d.status === 'inactive'">
+                {{ d.status }}
+              </span>
+            </td>
+            <td>
+              <button class="btn btn-link btn-sm" (click)="view(d)">View</button>
+              <button class="btn btn-primary btn-sm" (click)="edit(d)">Edit</button>
+              <button class="btn btn-danger btn-sm" (click)="delete(d.id)">Delete</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,171 @@
+<div class="documents">
+  <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
+  <div class="header">
+    <h1>Documents &amp; Expiry Alerts</h1>
+    <button class="btn btn-primary" (click)="addNew()">Add Document</button>
+  </div>
+  <p class="page-subtitle">Automated reminders for insurance, road licence, driver licence, inspections and scheduled service</p>
+
+  <div class="cards">
+    <div class="card danger">
+      <span class="number">{{ expiredCount() }}</span>
+      <span class="label">Expired</span>
+    </div>
+    <div class="card warning">
+      <span class="number">{{ dueSoonCount() }}</span>
+      <span class="label">Expiring in 30 Days</span>
+    </div>
+    <div class="card success">
+      <span class="number">{{ validCount() }}</span>
+      <span class="label">Valid</span>
+    </div>
+  </div>
+
+  @if (showForm) {
+    <div class="modal-overlay">
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <h2>{{ editing.id ? 'Edit Document' : 'Add Document' }}</h2>
+          <button type="button" class="modal-close" (click)="cancel()" aria-label="Close">×</button>
+        </div>
+        <form class="document-form" (ngSubmit)="save()">
+          <div class="form-row">
+            <label>
+              Document Type <span class="req">*</span>
+              <select [(ngModel)]="editing.type" name="type" required>
+                @for (t of types; track t.value) {
+                  <option [value]="t.value">{{ t.label }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Reference / Policy No. <span class="req">*</span>
+              <input type="text" [(ngModel)]="editing.referenceNumber" name="referenceNumber" required placeholder="e.g. INS-2026-045" />
+            </label>
+          </div>
+          <div class="form-row">
+            <label>
+              Vehicle
+              <select [(ngModel)]="editing.vehicleId" name="vehicleId">
+                <option value="">None</option>
+                @for (v of vehicles; track v.id) {
+                  <option [value]="v.id">{{ v.year }} {{ v.make }} {{ v.model }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Driver
+              <select [(ngModel)]="editing.driverId" name="driverId">
+                <option value="">None</option>
+                @for (d of drivers; track d.id) {
+                  <option [value]="d.id">{{ d.name }}</option>
+                }
+              </select>
+            </label>
+          </div>
+          <div class="form-row">
+            <label>
+              Issue Date
+              <input type="date" [(ngModel)]="editing.issueDate" name="issueDate" />
+            </label>
+            <label>
+              Expiry Date <span class="req">*</span>
+              <input type="date" [(ngModel)]="editing.expiryDate" name="expiryDate" required />
+            </label>
+          </div>
+          <label class="full-width">
+            Notes
+            <textarea [(ngModel)]="editing.notes" name="notes" rows="2" placeholder="Renewal notes, conditions..."></textarea>
+          </label>
+          <div class="actions">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <div class="section">
+    <h2>Expiry Alerts</h2>
+    @if (alerts.length === 0) {
+      <p class="empty">No documents or expiry dates tracked yet.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Document / Check</th>
+              <th>Expiry Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of alerts; track $index) {
+              <tr>
+                <td>{{ a.subject }}</td>
+                <td>{{ a.type }}</td>
+                <td>{{ a.expiryDate }}</td>
+                <td>
+                  <span class="badge"
+                    [class.badge-overdue]="a.status === 'expired'"
+                    [class.badge-due-soon]="a.status === 'due_soon'"
+                    [class.badge-success]="a.status === 'valid'">
+                    {{ a.status === 'expired' ? 'Expired' : a.status === 'due_soon' ? 'Due Soon' : 'Valid' }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <div class="section">
+    <h2>Document Register</h2>
+    @if (documents.length === 0) {
+      <p class="empty">No documents recorded yet.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Reference No.</th>
+              <th>Subject</th>
+              <th>Issue Date</th>
+              <th>Expiry Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of documents; track d.id) {
+              <tr>
+                <td>{{ typeLabel(d.type) }}</td>
+                <td>{{ d.referenceNumber }}</td>
+                <td>{{ d.subjectName }}</td>
+                <td>{{ d.issueDate || '-' }}</td>
+                <td>{{ d.expiryDate }}</td>
+                <td>
+                  <span class="badge"
+                    [class.badge-overdue]="status(d.expiryDate) === 'expired'"
+                    [class.badge-due-soon]="status(d.expiryDate) === 'due_soon'"
+                    [class.badge-success]="status(d.expiryDate) === 'valid'">
+                    {{ status(d.expiryDate) === 'expired' ? 'Expired' : status(d.expiryDate) === 'due_soon' ? 'Due Soon' : 'Valid' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-primary btn-sm" (click)="edit(d)">Edit</button>
+                  <button class="btn btn-danger btn-sm" (click)="delete(d.id)">Delete</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

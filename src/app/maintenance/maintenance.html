@@ -1,0 +1,238 @@
+<div class="maintenance">
+  <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
+
+  @if (activeTab === 'service') {
+    <div class="section-header">
+      <h2>Maintenance Requests</h2>
+      <button class="btn btn-primary" (click)="addRequest()">New Request</button>
+    </div>
+
+    @if (showRequestForm) {
+      <div class="modal-overlay" (click)="cancelRequest()">
+        <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+          <div class="modal-header">
+            <h2>{{ newRequest.id ? 'Edit Request' : 'New Maintenance Request' }}</h2>
+            <button type="button" class="modal-close" (click)="cancelRequest()" aria-label="Close">×</button>
+          </div>
+          <form class="request-form" (ngSubmit)="saveRequest()">
+            <div class="form-row">
+              <label>
+                Vehicle
+                <select [(ngModel)]="newRequest.vehicleId" name="vehicleId" required>
+                  <option value="" disabled>Select vehicle</option>
+                  @for (v of vehicles; track v.id) {
+                    <option [value]="v.id">{{ v.year }} {{ v.make }} {{ v.model }}</option>
+                  }
+                </select>
+              </label>
+              <label>
+                Current Mileage
+                <input type="number" [(ngModel)]="newRequest.currentMileage" name="currentMileage" required />
+              </label>
+              <label>
+                Priority
+                <select [(ngModel)]="newRequest.priority" name="priority">
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Requested By
+                <input type="text" [(ngModel)]="newRequest.requestedBy" name="requestedBy" required />
+              </label>
+              <label>
+                Status
+                <select [(ngModel)]="newRequest.status" name="status">
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </label>
+              <label>
+                Request Date
+                <input type="date" [(ngModel)]="newRequest.requestDate" name="requestDate" required />
+              </label>
+            </div>
+            <label class="full-width">
+              Problem / Description
+              <textarea [(ngModel)]="newRequest.problem" name="problem" rows="4" required></textarea>
+            </label>
+            <div class="actions">
+              <button type="submit" class="btn btn-primary">Save</button>
+              <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    }
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Vehicle</th>
+            <th>Problem</th>
+            <th>Requested By</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of requests; track r.id) {
+            <tr>
+              <td>{{ r.vehicleName }}</td>
+              <td>{{ r.problem }}</td>
+              <td>{{ r.requestedBy }}</td>
+              <td>
+                <span class="badge"
+                  [class.badge-danger]="r.priority === 'high'"
+                  [class.badge-warning]="r.priority === 'medium'"
+                  [class.badge-success]="r.priority === 'low'">
+                  {{ r.priority }}
+                </span>
+              </td>
+              <td>
+                <span class="badge"
+                  [class.badge-warning]="r.status === 'pending'"
+                  [class.badge-primary]="r.status === 'approved'"
+                  [class.badge-info]="r.status === 'in_progress'"
+                  [class.badge-success]="r.status === 'completed'"
+                  [class.badge-inactive]="r.status === 'closed'">
+                  {{ r.status }}
+                </span>
+              </td>
+              <td>{{ r.requestDate }}</td>
+              <td>
+                <button class="btn btn-link" (click)="editRequest(r)">Edit</button>
+                <button class="btn btn-danger" (click)="deleteRequest(r.id)">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (activeTab === 'history') {
+    <div class="section-header">
+      <h2>Maintenance History</h2>
+      <button class="btn btn-primary" (click)="addRecord()">New Service Record</button>
+    </div>
+
+    @if (showRecordForm) {
+      <form class="section-form" (ngSubmit)="saveRecord()">
+        <h3>New Service Record</h3>
+        <div class="form-row">
+          <label>
+            Vehicle
+            <select [(ngModel)]="newRecord.vehicleId" name="vehicleId" required>
+              <option value="" disabled>Select vehicle</option>
+              @for (v of vehicles; track v.id) {
+                <option [value]="v.id">{{ v.year }} {{ v.make }} {{ v.model }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            Service Date
+            <input type="date" [(ngModel)]="newRecord.serviceDate" name="serviceDate" required />
+          </label>
+          <label>
+            Service Type
+            <select [(ngModel)]="newRecord.serviceType" name="serviceType" required>
+              <option value="" disabled>Select type</option>
+              <option value="Preventive">Preventive</option>
+              <option value="Repair">Repair</option>
+              <option value="Inspection">Inspection</option>
+            </select>
+          </label>
+        </div>
+        <div class="form-row">
+          <label>
+            Garage / Workshop
+            <input type="text" [(ngModel)]="newRecord.garage" name="garage" placeholder="e.g. Toyota Tanzania" />
+          </label>
+          <label>
+            Technician
+            <input type="text" [(ngModel)]="newRecord.technician" name="technician" />
+          </label>
+          <label>
+            Mileage (km)
+            <input type="number" [(ngModel)]="newRecord.mileage" name="mileage" min="0" required />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>
+            Parts Replaced
+            <input type="text" [(ngModel)]="newRecord.parts" name="parts" placeholder="e.g. Engine oil, filter" />
+          </label>
+          <label>
+            Cost
+            <input type="number" [(ngModel)]="newRecord.cost" name="cost" min="0" step="0.01" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>
+            Next Service Date
+            <input type="date" [(ngModel)]="newRecord.nextServiceDate" name="nextServiceDate" />
+          </label>
+          <label>
+            Next Service Mileage (km)
+            <input type="number" [(ngModel)]="newRecord.nextServiceMileage" name="nextServiceMileage" min="0" />
+          </label>
+        </div>
+        <label>
+          Description
+          <textarea [(ngModel)]="newRecord.description" name="description" rows="3"></textarea>
+        </label>
+        <div class="actions">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-secondary" (click)="cancelRecord()">Cancel</button>
+        </div>
+      </form>
+    }
+
+    @if (records.length === 0) {
+      <p class="empty">No service records yet.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Vehicle</th>
+              <th>Type</th>
+              <th>Garage</th>
+              <th>Parts Replaced</th>
+              <th>Cost</th>
+              <th>Next Service</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of records; track r.id) {
+              <tr>
+                <td>{{ r.serviceDate }}</td>
+                <td>{{ vehicleName(r.vehicleId) }}</td>
+                <td><span class="badge badge-success">{{ r.serviceType }}</span></td>
+                <td>{{ r.garage || '-' }}</td>
+                <td>{{ r.parts || '-' }}</td>
+                <td>{{ r.cost ? (r.cost | currency) : '-' }}</td>
+                <td>{{ r.nextServiceDate || (r.nextServiceMileage ? (r.nextServiceMileage + ' km') : '-') }}</td>
+                <td>
+                  <button class="btn btn-danger" (click)="deleteRecord(r.id)">Delete</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>
